@@ -6,148 +6,62 @@ const squareStyle = `
     height: 40px;
     background-color: yellow;
     border: 2px solid red;
-    z-index: 9999;
-`;
-const spinnerStyles =`
-    background: #000;
-    background: radial-gradient(#222, #000);
-    bottom: 0;
-    left: 0;
-    overflow: hidden;
-    position: fixed;
-    right: 0;
-    top: 0;
-    z-index: 99999;
-
+    
 `;
 
-const loaderInnerStyles = `
-    bottom: 0;
-    height: 60px;
-    left: 0;
-    margin: auto;
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 100px;
+const spinnerStyles= `
+.loaderui {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 48px;
+  height: 48px;
+  border: 5px solid #FFF;
+  border-bottom-color: #FF3D00;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+  z-index: 9999;
+  }
+
+  @keyframes rotation {
+  0% {
+      transform: rotate(0deg);
+  }
+  100% {
+      transform: rotate(360deg);
+  }
+  } 
 `;
 
-const loaderLineWrapStyles = `
-    animation: spin 2000ms cubic-bezier(.175, .885, .32, 1.275) infinite;
-    box-sizing: border-box;
-    height: 50px;
-    left: 0;
-    overflow: hidden;
-    position: absolute;
-    top: 0;
-    transform-origin: 50% 100%;
-    width: 100px;
-`;
-
-const loaderLineStyles = `
-    border: 4px solid transparent;
-    border-radius: 100%;
-    box-sizing: border-box;
-    height: 100px;
-    left: 0;
-    margin: 0 auto;
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 100px;
-`;
 
 
 function showSpinner() {
+
+  const styles = document.createElement('style');
+  styles.innerHTML = spinnerStyles;
+  document.head.appendChild(styles);
+
   const spinner = document.createElement('div');
-  spinner.style.cssText = spinnerStyles;
-
-  const loaderInner = document.createElement('div');
-  loaderInner.style.cssText = loaderInnerStyles;
-
-  for (let i = 0; i < 5; i++) {
-    // Create a loader line wrap
-    const loaderLineWrap = document.createElement('div');
-    loaderLineWrap.style.cssText = loaderLineWrapStyles;
-      switch (i) {
-        case 0:
-            loaderLineWrap.style.animationDelay = '-50ms';
-            loaderLineWrap.style.borderColor = 'hsl(0, 80%, 60%)';
-            loaderLineWrap.style.height = '90px';
-            loaderLineWrap.style.width = '90px';
-            loaderLineWrap.style.top = '7px';
-            break;
-        case 1:
-            loaderLineWrap.style.animationDelay = '-100ms';
-            loaderLineWrap.style.borderColor = 'hsl(60, 80%, 60%)';
-            loaderLineWrap.style.height = '76px';
-            loaderLineWrap.style.width = '76px';
-            loaderLineWrap.style.top = '14px';
-            break;
-        case 2:
-            loaderLineWrap.style.animationDelay = '-150ms';
-            loaderLineWrap.style.borderColor = 'hsl(120, 80%, 60%)';
-            loaderLineWrap.style.height = '62px';
-            loaderLineWrap.style.width = '62px';
-            loaderLineWrap.style.top = '21px';
-            break;
-        case 3:
-            loaderLineWrap.style.animationDelay = '-200ms';
-            loaderLineWrap.style.borderColor = 'hsl(180, 80%, 60%)';
-            loaderLineWrap.style.height = '48px';
-            loaderLineWrap.style.width = '48px';
-            loaderLineWrap.style.top = '28px';
-            break;
-        case 4:
-            loaderLineWrap.style.animationDelay = '-250ms';
-            loaderLineWrap.style.borderColor = 'hsl(240, 80%, 60%)';
-            loaderLineWrap.style.height = '34px';
-            loaderLineWrap.style.width = '34px';
-            loaderLineWrap.style.top = '35px';
-            break;
-        default:
-            break;
-    }
-
-    // Create a loader line
-    const loaderLine = document.createElement('div');
-    
-
-    // Append the loader line to the loader line wrap
-    loaderLineWrap.appendChild(loaderLine);
-
-    // Append the loader line wrap to the loader inner
-    loaderInner.appendChild(loaderLineWrap);
-  }
-
-  spinner.appendChild(loaderInner);
-
+  spinner.classList.add('loaderui')
   return spinner;
 
 
 
 }
 
-const loaderContainer = document.createElement('div');
 
-// Create the first loader
-const loader1 = createLoader();
 
-// Create the second loader
-const loader2 = createLoader();
-
-// Append the loaders to the container
-loaderContainer.appendChild(loader1);
-loaderContainer.appendChild(loader2);
 
 function extractVideoIds() {
   let VideosIds = [];
   let select = document.querySelectorAll('a#thumbnail.ytd-thumbnail');
   
   let links = [...select]
-  for (let i = 0; i < select.length; i++) {
-    let link = select[i];
-    link.parentElement.appendChild(loaderContainer)
+  for (let i = 0; i < links.length; i++) {
+    let link = links[i];
+    link.parentElement.appendChild(loader)
     let videoId
    
    
@@ -210,6 +124,7 @@ function sendVideoIdsToExtension(videoIds, link) {
                   arr.parentElement.appendChild(newDiv);
               }
           }
+           
       });
   }
 }
@@ -217,8 +132,8 @@ function sendVideoIdsToExtension(videoIds, link) {
 //sendVideoIdsToExtension(videoIds, link);
 
 function handleChanges() {
-  
-        const [videoIds, link] = extractVideoIds();
+        const spinner = showSpinner()
+        const [videoIds, link] = extractVideoIds(spinner);
 
         sendVideoIdsToExtension(videoIds, link);
 
@@ -227,29 +142,27 @@ function handleChanges() {
       
   
 }
+window.addEventListener('scroll', handleChanges);
 
 window.addEventListener('DOMContentLoaded', function () {
+  //const spinner = showSpinner()
   const [videoIds, link] = extractVideoIds();
   // Send the initial video IDs to the extension
   sendVideoIdsToExtension(videoIds, link);
 });
 
-window.addEventListener('scroll', handleChanges);
+const webupdate = () => {
+  const [videoIds, link] = extractVideoIds();
 
-window.addEventListener('popstate', function(event) {
-  // Re-extract video IDs when the user navigates to a new page
-  const [videoIds, link]  = extractVideoIds();
-  // Send the new video IDs to the extension
   sendVideoIdsToExtension(videoIds, link);
-});
 
-// const config = { attributes: true, childList: true, subtree: true };
+}
+
+chrome.webNavigation.onTabReplaced.addListener(webupdate)
 
 
-// const observer = new MutationObserver(handleDOMChanges);
 
-// 
-// observer.observe(contents, config);
+
 
 
 

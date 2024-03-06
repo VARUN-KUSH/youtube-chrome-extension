@@ -14,7 +14,9 @@
         
       },
       
-      
+      "permissions": [
+        "webNavigation"
+      ],
      
       "action": {
         "default_popup": "index.html"
@@ -24,8 +26,11 @@
      "content_scripts": [
         {
           "matches": ["*://www.youtube.com/*" ],
+         
           "js": ["scripts/content.js"],
-          "run_at": "document_start"
+          "run_at": "document_start",
+          "all_frames" : true
+          
           
         }
       ]
