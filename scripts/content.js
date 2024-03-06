@@ -19,10 +19,9 @@ const spinnerStyles= `
   border: 5px solid #FFF;
   border-bottom-color: #FF3D00;
   border-radius: 50%;
-  display: inline-block;
   box-sizing: border-box;
   animation: rotation 1s linear infinite;
-  z-index: 9999;
+  
   }
 
   @keyframes rotation {
@@ -37,19 +36,6 @@ const spinnerStyles= `
 
 
 
-function showSpinner() {
-
-  const styles = document.createElement('style');
-  styles.innerHTML = spinnerStyles;
-  document.head.appendChild(styles);
-
-  const spinner = document.createElement('div');
-  spinner.classList.add('loaderui')
-  return spinner;
-
-
-
-}
 
 
 
@@ -57,11 +43,21 @@ function showSpinner() {
 function extractVideoIds() {
   let VideosIds = [];
   let select = document.querySelectorAll('a#thumbnail.ytd-thumbnail');
+  let running;
   
   let links = [...select]
   for (let i = 0; i < links.length; i++) {
+    const styles = document.createElement('style');
+    styles.innerHTML = spinnerStyles;
+    document.head.appendChild(styles);
+
+    const uielement = document.createElement('div');
+    uielement.classList.add('loaderui')
+  
+
     let link = links[i];
-    link.parentElement.appendChild(loader)
+    link.parentElement.appendChild(uielement)
+    
     let videoId
    
    
@@ -94,64 +90,87 @@ function extractVideoIds() {
       
   } 
 
-  
-   return [VideosIds, links];
+   
+   return [VideosIds, links, false];
+   
 
 
 
 }
 
-//const [videoIds, link] = extractVideoIds();
-
-
-
 function sendVideoIdsToExtension(videoIds, link) {
+  
   if (videoIds.length > 0) {
       var port = chrome.runtime.connect({ name: "videoIds" });
       port.postMessage({ value: videoIds });
       port.onMessage.addListener(function (msg) {
-          if (msg.data) {
-              const objectLength = Object.keys(msg.data).length;
+          if(msg.data) {
+            const objectLength = Object.keys(msg.data).length;
 
-              for (let i = 0; i < objectLength; i++) {
-                  let currentmsg = msg.data[i];
-                  console.log(currentmsg);
-                  let arrs = link;
-                  let arr = arrs[i];
-                  let newDiv = document.createElement('div');
-                  newDiv.style.cssText = squareStyle;
-                  newDiv.innerHTML = currentmsg;
-                  arr.parentElement.appendChild(newDiv);
-              }
+            for (let i = 0; i < objectLength; i++) {
+                let currentmsg = msg.data[i];
+                console.log(currentmsg);
+                let arrs = link;
+                let arr = arrs[i];
+                let elementsToRemove = document.getElementsByClassName('loaderui');
+                if (elementsToRemove.length > 0) {
+                  let element = elementsToRemove[0];
+                  element.parentNode.removeChild(element);
+                }
+                let uielement = document.createElement("div")
+                uielement.style.cssText = squareStyle;
+                uielement.innerHTML = currentmsg;
+                arr.parentElement.appendChild(uielement);
+            }
+          
           }
+          
+          
+          
+        
            
       });
   }
 }
 
-//sendVideoIdsToExtension(videoIds, link);
 
 function handleChanges() {
-        const spinner = showSpinner()
-        const [videoIds, link] = extractVideoIds(spinner);
+    
+        const [videoIds, link, running] = extractVideoIds();
 
         sendVideoIdsToExtension(videoIds, link);
 
         console.log('Video IDs:', videoIds);
        
-      
+        isExtractionRunning = false;
   
 }
-window.addEventListener('scroll', handleChanges);
+
+
+
+window.addEventListener('scroll', function() {
+  // Check if the extraction process is already running
+  // if (!isExtractionRunning) {
+  //     // Check if user has scrolled to the bottom of the page
+  //     if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+  //         // Set flag to indicate extraction process is running
+  //         isExtractionRunning = true;
+
+  //         // Call the handleChanges function to extract video IDs
+  //         handleChanges();
+  //     }
+  // }
+});
 
 window.addEventListener('DOMContentLoaded', function () {
-  //const spinner = showSpinner()
+  
   const [videoIds, link] = extractVideoIds();
   // Send the initial video IDs to the extension
   sendVideoIdsToExtension(videoIds, link);
 });
 
 const webupdate = () => {
+ 
   const [videoIds, link] = extractVideoIds();
 
   sendVideoIdsToExtension(videoIds, link);
